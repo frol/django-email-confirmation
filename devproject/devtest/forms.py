@@ -1,5 +1,5 @@
-from django import newforms as forms
-from django.core.validators import alnum_re
+from django import forms
+from django.core.validators import slug_re
 
 from django.contrib.auth.models import User
 from emailconfirmation.models import EmailAddress
@@ -14,7 +14,7 @@ class SignupForm(forms.Form):
     email = forms.EmailField(label="E-mail (optional)", required=False, widget=forms.TextInput())
     
     def clean_username(self):
-        if not alnum_re.search(self.cleaned_data["username"]):
+        if not slug_re.search(self.cleaned_data["username"]):
             raise forms.ValidationError(u"Usernames can only contain letters, numbers and underscores.")
         try:
             user = User.objects.get(username__exact=self.cleaned_data["username"])
@@ -35,7 +35,6 @@ class SignupForm(forms.Form):
         password = self.cleaned_data["password1"]
         new_user = User.objects.create_user(username, email, password)
         if email:
-            self.user.message_set.create(message="Confirmation e-mail sent to %s" % email)
             EmailAddress.objects.add_email(new_user, email)
         return username, password # required for authenticate()
 
